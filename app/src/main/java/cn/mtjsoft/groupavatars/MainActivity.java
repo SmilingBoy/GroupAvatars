@@ -3,17 +3,19 @@ package cn.mtjsoft.groupavatars;
 import android.os.Bundle;
 import android.widget.ImageView;
 
+import androidx.appcompat.app.AppCompatActivity;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import androidx.appcompat.app.AppCompatActivity;
 import cn.mtjsoft.groupavatarslib.GroupAvatarsLib;
 import cn.mtjsoft.groupavatarslib.layout.DingLayoutManager;
 import cn.mtjsoft.groupavatarslib.layout.WechatLayoutManager;
 
 public class MainActivity extends AppCompatActivity {
     private String[] IMG_URL = {
+            "小王",
             "http://img.hb.aicdn.com/eca438704a81dd1fa83347cb8ec1a49ec16d2802c846-laesx2_fw658",
             "http://img.hb.aicdn.com/729970b85e6f56b0d029dcc30be04b484e6cf82d18df2-XwtPUZ_fw658", "123小明",
             "http://img.hb.aicdn.com/2814e43d98ed41e8b3393b0ff8f08f98398d1f6e28a9b-xfGDIC_fw658",
@@ -31,7 +33,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Collections.addAll(mList, IMG_URL);
 
-        showImageWx(findViewById(R.id.image2), 2);
+        showImageWx(findViewById(R.id.image2), 1);
         showImageWx(findViewById(R.id.image3), 3);
         showImageWx(findViewById(R.id.image4), 4);
         showImageWx(findViewById(R.id.image5), 5);
@@ -69,8 +71,10 @@ public class MainActivity extends AppCompatActivity {
                 .setNickAvatarColor(R.color.color_1677FF)
                 // 设置昵称生成头像时的文字大小 ,单位dp （设置为0时 = 单个小头像的1/4大小）
                 .setNickTextSize(0)
+                // 文字和图片的比例 默认4
+                .setTextSizeRadio(2.5F)
                 // 设置群组ID，用于生成缓存key
-                .setGroupId(groupId)
+                .setGroupId(groupId + System.currentTimeMillis())
                 // 设置加载最终图片的圆角大小，单位dp，默认0
                 .setRound(10)
                 // 设置内部单个图片的圆角，单位dp，默认0

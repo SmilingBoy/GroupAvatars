@@ -1,5 +1,7 @@
 package cn.mtjsoft.groupavatarslib;
 
+import static cn.mtjsoft.groupavatarslib.utils.DisplayUtils.dp2px;
+
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -10,6 +12,10 @@ import android.os.Looper;
 import android.os.Message;
 import android.text.TextUtils;
 import android.widget.ImageView;
+
+import androidx.annotation.ColorRes;
+import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.RequestBuilder;
@@ -25,9 +31,6 @@ import com.bumptech.glide.request.target.Target;
 import java.lang.ref.WeakReference;
 import java.util.List;
 
-import androidx.annotation.ColorRes;
-import androidx.annotation.Nullable;
-import androidx.core.content.ContextCompat;
 import cn.mtjsoft.groupavatarslib.cache.DiskLruCacheHelper;
 import cn.mtjsoft.groupavatarslib.cache.LruCacheHelper;
 import cn.mtjsoft.groupavatarslib.layout.DingLayoutManager;
@@ -35,8 +38,6 @@ import cn.mtjsoft.groupavatarslib.layout.ILayoutManager;
 import cn.mtjsoft.groupavatarslib.layout.WechatLayoutManager;
 import cn.mtjsoft.groupavatarslib.utils.MD5Util;
 import cn.mtjsoft.groupavatarslib.utils.thread.ThreadPoolUtils;
-
-import static cn.mtjsoft.groupavatarslib.utils.DisplayUtils.dp2px;
 
 /**
  * @author mtj
@@ -124,6 +125,11 @@ public class Builder {
     private int nickTextSize = 0;
 
     /**
+     * 文字和图片的比例 默认4
+     */
+    private float textSizeRadio = 4;
+
+    /**
      * 使用glide加载出所需bitmap
      */
     private int overCount = 0;
@@ -201,6 +207,11 @@ public class Builder {
         return this;
     }
 
+    public Builder setTextSizeRadio(float textSizeRadio) {
+        this.textSizeRadio = textSizeRadio;
+        return this;
+    }
+
     public void build() {
         if (this.datas == null) {
             throw new RuntimeException("datas cant not is null");
@@ -259,33 +270,33 @@ public class Builder {
     @SuppressLint("CheckResult")
     private void loadBitmapGlide(boolean isDing, final int position) {
         RequestBuilder<Bitmap> requestBuilder =
-            Glide.with(context.get())
-                .asBitmap()
-                .load(datas.get(position))
-                .override(subSize, subSize)
-                .centerCrop()
-                // 禁止掉glide内存和磁盘缓存
-                .diskCacheStrategy(DiskCacheStrategy.NONE)
-                .skipMemoryCache(true)
-                .error(placeholder)
-                .listener(new RequestListener<Bitmap>() {
-                    @Override
-                    public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Bitmap> target,
-                        boolean isFirstResource) {
-                        Message message = mHandler.obtainMessage(LOAD_END, position, 0,
-                            BitmapFactory.decodeResource(context.get().getResources(), placeholder));
-                        mHandler.sendMessage(message);
-                        return false;
-                    }
+                Glide.with(context.get())
+                        .asBitmap()
+                        .load(datas.get(position))
+                        .override(subSize, subSize)
+                        .centerCrop()
+                        // 禁止掉glide内存和磁盘缓存
+                        .diskCacheStrategy(DiskCacheStrategy.NONE)
+                        .skipMemoryCache(true)
+                        .error(placeholder)
+                        .listener(new RequestListener<Bitmap>() {
+                            @Override
+                            public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Bitmap> target,
+                                                        boolean isFirstResource) {
+                                Message message = mHandler.obtainMessage(LOAD_END, position, 0,
+                                        BitmapFactory.decodeResource(context.get().getResources(), placeholder));
+                                mHandler.sendMessage(message);
+                                return false;
+                            }
 
-                    @Override
-                    public boolean onResourceReady(Bitmap resource, Object model, Target<Bitmap> target, DataSource dataSource,
-                        boolean isFirstResource) {
-                        Message message = mHandler.obtainMessage(LOAD_END, position, 0, resource);
-                        mHandler.sendMessage(message);
-                        return false;
-                    }
-                });
+                            @Override
+                            public boolean onResourceReady(Bitmap resource, Object model, Target<Bitmap> target, DataSource dataSource,
+                                                           boolean isFirstResource) {
+                                Message message = mHandler.obtainMessage(LOAD_END, position, 0, resource);
+                                mHandler.sendMessage(message);
+                                return false;
+                            }
+                        });
         if (!isDing && childAvatarRoundPx > 0) {
             requestBuilder.apply(RequestOptions.bitmapTransform(new RoundedCorners(childAvatarRoundPx)));
         }
@@ -359,7 +370,7 @@ public class Builder {
                 if (overCount == count) {
                     ThreadPoolUtils.execute(() -> {
                         showImage(layoutManager.combineBitmap(size, subSize, gap, gapColor, mObjects, childAvatarRoundPx,
-                            nickAvatarColor, nickTextSize > 0 ? nickTextSize : subSize / 4), false);
+                                nickAvatarColor, nickTextSize > 0 ? nickTextSize : (int) (subSize / textSizeRadio)), false);
                     });
                 }
             }
@@ -377,8 +388,8 @@ public class Builder {
                     DiskLruCacheHelper.init().addBitmapToDiskCache(md5, bitmap);
                 }
                 RequestBuilder<Drawable> requestBuilder = Glide.with(context.get()).load(bitmap)
-                    // 禁止掉glide内存和磁盘缓存
-                    .diskCacheStrategy(DiskCacheStrategy.NONE).skipMemoryCache(true);
+                        // 禁止掉glide内存和磁盘缓存
+                        .diskCacheStrategy(DiskCacheStrategy.NONE).skipMemoryCache(true);
                 if (layoutManager instanceof DingLayoutManager) {
                     requestBuilder.apply(RequestOptions.bitmapTransform(new CircleCrop()));
                 } else if (layoutManager instanceof WechatLayoutManager) {

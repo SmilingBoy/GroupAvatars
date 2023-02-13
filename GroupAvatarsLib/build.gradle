@@ -2,7 +2,7 @@ plugins {
     id 'com.android.library'
 }
 apply plugin: 'com.github.dcendents.android-maven'
-group='com.github.mtjsoft'
+group='com.github.SmilingBoy'
 
 android {
     compileSdkVersion 30
